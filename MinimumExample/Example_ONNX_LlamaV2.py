@@ -7,7 +7,6 @@ from typing import List
 import os
 import argparse
 import time
-# input(os.getpid())
 
 
 class Tokenizer:
@@ -46,8 +45,6 @@ def run_onnx_llamav2(
 ) -> str:
     # Create the ONNX session
     options = onnxruntime.SessionOptions()
-    # options.add_free_dimension_override_by_name("pos", 6)
-    # options.add_free_dimension_override_by_name("seq_len", 1)
     llm_session = onnxruntime.InferenceSession(
         onnx_file,
         sess_options=options,
@@ -69,7 +66,6 @@ def run_onnx_llamav2(
 
     # Get the relevant shapes so we can create the inputs
     for inputs_meta in llm_session._inputs_meta:
-        print(inputs_meta.shape)
         if inputs_meta.name == "x":
             x_shape = inputs_meta.shape
         elif inputs_meta.name == "attn_mask":
@@ -106,28 +102,6 @@ def run_onnx_llamav2(
     v_cache = np.zeros([1, n_layers, max_seq_len, n_heads, head_dim], dtype=data_type)
 
     before_time = time.perf_counter()
-
-    x = embedding_layer(torch.tensor([0])).unsqueeze(0)
-    x = x.cpu().detach().numpy().astype(data_type)
-    pos = np.array(6)
-
-    for idx in range(45):
-        results = llm_session.run(
-            None,
-            {
-                "x": x,
-                "attn_mask": attn_mask,
-                "k_cache": k_cache[:, :, :pos],
-                "v_cache": v_cache[:, :, :pos],
-                "pos": pos.astype(np.int64),
-            },
-        )
-        logits, k_out, v_out = results[:3]
-
-    after_time = time.perf_counter()
-    print(f"Execution took {after_time - before_time:0.4f} seconds")
-
-    return "abc"
 
     # Iteratively generate tokens.
     pos = np.array(0)
