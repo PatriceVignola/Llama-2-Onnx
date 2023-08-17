@@ -6,6 +6,7 @@ from sentencepiece import SentencePieceProcessor
 from typing import List
 import os
 import argparse
+import time
 
 
 class Tokenizer:
@@ -100,6 +101,8 @@ def run_onnx_llamav2(
     k_cache = np.zeros([1, n_layers, max_seq_len, n_heads, head_dim], dtype=data_type)
     v_cache = np.zeros([1, n_layers, max_seq_len, n_heads, head_dim], dtype=data_type)
 
+    before_time = time.perf_counter()
+
     # Iteratively generate tokens.
     pos = np.array(0)
     output_tokens = []
@@ -133,6 +136,9 @@ def run_onnx_llamav2(
         pos = np.array(int(pos) + seq_len, dtype=np.int64)
         x = embedding_layer(torch.tensor(next_token)).unsqueeze(0)
         x = x.cpu().detach().numpy().astype(data_type)
+
+    after_time = time.perf_counter()
+    print(f"Execution took {after_time - before_time:0.4f} seconds")
 
     output_str = tokenizer.decode(torch.tensor(output_tokens).tolist())
 
