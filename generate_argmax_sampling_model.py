@@ -18,7 +18,7 @@ def convert_model(vocab_size: int):
         "argmax_sampling.onnx",
         do_constant_folding=True,
         input_names = ["logits"],
-        output_names = ["next_token", "next_token_cpu"],
+        output_names = ["next_token"],
     )
 
 
