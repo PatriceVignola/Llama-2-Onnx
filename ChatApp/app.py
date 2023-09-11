@@ -4,6 +4,7 @@ import logging
 import gradio as gr
 import gc
 from interface.hddr_llama_onnx_interface import LlamaOnnxInterface
+from interface.hddr_llama_onnx_dml_interface import LlamaOnnxDmlInterface
 from interface.empty_stub_interface import EmptyStubInterface
 from ChatApp.app_modules.utils import (
     reset_textbox,
@@ -48,6 +49,12 @@ available_models = {
         "embedding_file": os.path.join(
             top_directory, "7B_FT_float16", "embeddings.pth"
         ),
+    },
+    "LLaMA 7B Chat Float16 (DML)": {
+        "onnx_file": "C:\\Users\\pavignol\\projects\\LLM\\LlamaV2\\onnx\\LlamaV2_7B_FT_float16_merged\\LlamaV2_7B_FT_float16_merged.onnx",
+        "update_embeddings_onnx_file": "C:\\Users\\pavignol\\projects\\Llama-2-Onnx\\update_embeddings.onnx",
+        "sampling_onnx_file": "C:\\Users\\pavignol\\projects\\Llama-2-Onnx\\argmax_sampling.onnx",
+        "tokenizer_path": tokenizer_path,
     },
     "LLaMA 13B Float16": {
         "onnx_file": os.path.join(
@@ -126,6 +133,15 @@ def change_model_listener(new_model_name):
     logging.info(f"Creating a new model [{new_model_name}]")
     if new_model_name == empty_stub_model_name:
         interface = EmptyStubInterface()
+        interface.initialize()
+    elif new_model_name == "LLaMA 7B Chat Float16 (DML)":
+        d = available_models[new_model_name]
+        interface = LlamaOnnxDmlInterface(
+            onnx_file=d["onnx_file"],
+            update_embeddings_onnx_file=d["update_embeddings_onnx_file"],
+            sampling_onnx_file=d["sampling_onnx_file"],
+            tokenizer_path=d["tokenizer_path"],
+        )
         interface.initialize()
     else:
         d = available_models[new_model_name]

@@ -112,10 +112,6 @@ def run_onnx_llamav2(
     k_cache = onnxruntime.OrtValue.ortvalue_from_numpy(initial_cache, binding_device)
     v_cache = onnxruntime.OrtValue.ortvalue_from_numpy(initial_cache, binding_device)
 
-    # Create the LLM model's I/O binding
-    logits_shape = (1, tokenizer.n_words)
-    logits = onnxruntime.OrtValue.ortvalue_from_shape_and_type(logits_shape, data_type, binding_device)
-
     # Create the argmax sampling's I/O binding
     next_token = onnxruntime.OrtValue.ortvalue_from_shape_and_type((1,), np.int64, binding_device)
     argmax_sampling_io_binding = argmax_sampling_session.io_binding()
@@ -126,6 +122,9 @@ def run_onnx_llamav2(
     cos = onnxruntime.OrtValue.ortvalue_from_shape_and_type((1, max_seq_len, 1, 64), data_type, binding_device)
     sin = onnxruntime.OrtValue.ortvalue_from_shape_and_type((1, max_seq_len, 1, 64), data_type, binding_device)
 
+    # Create the LLM model's I/O binding
+    logits_shape = (1, tokenizer.n_words)
+    logits = onnxruntime.OrtValue.ortvalue_from_shape_and_type(logits_shape, data_type, binding_device)
     llm_io_binding = llm_session.io_binding()
     llm_io_binding.bind_ortvalue_output("logits", logits)
     llm_io_binding.bind_ortvalue_output("attn_mask_out", attn_mask)
@@ -170,6 +169,7 @@ def run_onnx_llamav2(
         if output_tokens[-1] == tokenizer.eos_id:
             break
 
+        # Update the embeddings for the next iteration
         update_embeddings_io_binding.bind_ortvalue_input("tokens", next_token)
 
         if idx == 0:
