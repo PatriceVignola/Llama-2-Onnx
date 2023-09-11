@@ -255,6 +255,8 @@ short answers are usually best"
                 self.llm_io_binding.bind_cpu_input("use_cache_branch", np.ones([1], dtype=np.bool_))
                 self.update_embeddings_io_binding.bind_ortvalue_input("tokens", self.next_token)
                 self.update_embeddings_io_binding.bind_ortvalue_output("embeddings", self.x_increment)
+            else:
+                self.llm_io_binding.bind_cpu_input("use_cache_branch", np.ones([1], dtype=np.bool_))
 
             # Update the embeddings
             self.update_embeddings_session.run_with_iobinding(self.update_embeddings_io_binding)
